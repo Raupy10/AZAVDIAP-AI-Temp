@@ -4,6 +4,7 @@
 #include <vector>
 #include "../general.h"
 #include "../ButtonManager.h"
+#include "../../UI/Theme.h"
 
 inline std::vector<SoundboardEntry> Sounds;
 inline int counter = 0;
@@ -18,4 +19,5 @@ void InitSoundboardAddButton();
 void UpdateSoundBoardBoxes();
 void LoadJsonSounds();
 std::string GetButtonPressedName();
+void RemoveEntry(const int& id);
 

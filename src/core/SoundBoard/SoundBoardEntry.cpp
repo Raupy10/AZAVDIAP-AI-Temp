@@ -1,5 +1,5 @@
 #include "SoundboardEntry.h"
-#include <iostream>
+#include "SoundboardManager.h"
 #include <raylib.h>
 
 
@@ -76,7 +76,6 @@ void SoundboardEntry::UpdateBoxes(){
         {   
            activeBox = -1;
         }
-        std::cout << activeBox << std::endl;
 
         if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_ESCAPE))
             activeBox = -1;
@@ -93,4 +92,14 @@ void SoundboardEntry::SetKey(std::string key){
 
 void SoundboardEntry::SetPath(std::string path){
 boxes[1].SetText(path);
+}
+int SoundboardEntry::GetCounter()
+{
+    return id;
+}
+void SoundboardEntry::SetCounter(const int& counter){
+    this->id = counter;
+}
+void SoundboardEntry::UpdateY(){
+    y -= 60;
 }

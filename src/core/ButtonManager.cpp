@@ -1,7 +1,10 @@
 #include "ButtonManager.h"
+#include "Button.h"
 #include "SoundBoard/SoundboardManager.h"
 #include "general.h"
+#include <cstddef>
 #include <raylib.h>
+#include <string>
 
 void InitButtons(){
     Button Soundboard_btn(gerneral::btn_Group::Tab_Group,"Soundboard_Tab",Soundboard_Icon,2,0,180,gerneral::Tab::Soundboard);
@@ -11,11 +14,36 @@ void InitButtons(){
 
     Button AddSound_btn(gerneral::btn_Group::Soundboard_Group,"AddSound",60,gerneral::AddSoundButtonY,Vector2{730,50},0.5);
 
-
     buttonList.push_back(Soundboard_btn);
     buttonList.push_back(Mic_btn);
     buttonList.push_back(Settings_btn);
     buttonList.push_back(AddSound_btn);
+}
+void AddButton(gerneral::btn_Group group, Texture2D tex, int x, int y,float scale, std::string name,int counter){
+    Button newButton(group,tex,x,y,scale,name,counter);
+    buttonList.push_back(newButton);
+}
+void RemoveButton(const int& id)
+{
+    int Location = 0;
+    for (auto it = buttonList.begin(); it != buttonList.end(); )
+    {
+        if (it->GetCounter() == id)
+        {
+            it = buttonList.erase(it);
+            Location = id;
+        }
+        else
+        {
+            ++it;
+        }
+    }
+    for(auto& b :buttonList)
+    {
+        if(b.GetCounter() > id){
+            b.SetCounter(b.GetCounter()-1);
+        }
+    }
 }
 void DrawTabButtons(){
     for(auto& b : buttonList){
@@ -32,7 +60,13 @@ void DrawSoundboardButton(){
 void UpdateSoundboardButton(){
     for(auto& b : buttonList){
         if(b.GetGroup() == gerneral::btn_Group::Soundboard_Group)
-            b.UpdateY(60 + (counter * 60.0f) - gerneral::scrollOffset);
+            if(b.GetName() =="AddSound")
+            {
+                b.UpdateY(60 + (counter * 60.0f) - gerneral::scrollOffset);
+            }
+            else{
+                b.UpdateY(b.GetY() +(b.GetCounter() * 60.0f) - gerneral::scrollOffset);
+            }
     }
 }
 
@@ -44,11 +78,11 @@ void UpdateButtons(){
          if(res)
          {
             if(b.GetGroup() == gerneral::btn_Group::Tab_Group) gerneral::currentTab = b.GetTab();
-            PressedButton = b.GetName();
+            PressedButton = &b;
             return;
          }
         }
-        PressedButton = "";
+        PressedButton = nullptr;
 
         
 }

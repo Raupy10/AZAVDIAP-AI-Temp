@@ -22,4 +22,35 @@ namespace LoadJson {
         }
     UpdateSoundboardButton();
     }
+
+
+    void RemoveEntry(int id)
+    {
+    json config;
+
+    std::ifstream in(gerneral::configPath);
+
+    if (!in)
+    {
+        std::cout << "Keine Json gefunden path: "
+                  << gerneral::configPath << std::endl;
+        return;
+    }
+
+    in >> config;
+
+
+    for (auto it = config["sounds"].begin(); it != config["sounds"].end(); ++it)
+    {
+        if ((*it)["id"] == id)
+        {
+            config["sounds"].erase(it);
+            break;
+        }
+    }
+
+
+    std::ofstream out(gerneral::configPath);
+    out << config.dump(4);
+}
 }

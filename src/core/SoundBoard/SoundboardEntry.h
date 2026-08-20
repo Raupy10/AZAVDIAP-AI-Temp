@@ -22,8 +22,8 @@ class SoundboardEntry{
     inline static int BoxIdCounter = 0;
 
     std::vector<TextBox> boxes = {
-        TextBox({ x+10,  70, 180, 35 }, "set key",   true),  
-        TextBox({ x+200, 70, 500, 35 }, "set sound", false),
+        TextBox({ x+60,  70, 180, 35 }, "set key",   true),  
+        TextBox({ x+250, 70, 400, 35 }, "set sound", false),
     };
 
     
@@ -37,6 +37,9 @@ class SoundboardEntry{
     void UpdateBoxes();
     void SetKey(std::string key);
     void SetPath(std::string path);
+    int GetCounter();
+    void SetCounter(const int& counter);
+    void UpdateY();
 
 
 };

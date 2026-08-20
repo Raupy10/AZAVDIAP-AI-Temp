@@ -2,7 +2,7 @@
 #include "general.h"
 #include <raylib.h>
 
-Button::Button(gerneral::btn_Group group,std::string name,Texture2D texture,int scale,int x,int y,gerneral::Tab tab){
+Button::Button(gerneral::btn_Group group,std::string name,Texture2D texture,float scale,int x,int y,gerneral::Tab tab){
     this->group = group;
     this->name = name;
     this->texture = texture;
@@ -20,6 +20,18 @@ Button::Button(gerneral::btn_Group group,std::string name,int x,int y,Vector2 si
     this->y = y;
     this-> size = size;
     this->rounding = rounding;
+}
+Button::Button(gerneral::btn_Group group,Texture2D tex,int x,int y,float scale,std::string name,int counter){
+    this->group = group;
+    this->name = name;
+    this->texture = tex;
+    this-> scale = scale;
+    this->size = Vector2{(float)texture.width * scale,(float)texture.height * scale};
+    this->x = x;
+    this->y = y;
+    this->preScaleY = y;
+    this->rounding = 0;
+    this->counter = counter;
 }
 
 
@@ -62,4 +74,13 @@ bool Button::Update(Vector2 mousePos){
 }
 void Button::UpdateY(float y){
     this->y = y;
+}
+float Button::GetY(){
+    return preScaleY;
+}
+int Button::GetCounter(){
+    return counter;
+}
+void Button::SetCounter(const int& counter){
+    this->counter = counter;
 }
