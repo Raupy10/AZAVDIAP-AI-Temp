@@ -19,8 +19,8 @@ void InitButtons(){
     buttonList.push_back(Settings_btn);
     buttonList.push_back(AddSound_btn);
 }
-void AddButton(gerneral::btn_Group group, Texture2D tex, int x, int y,float scale, std::string name,int counter){
-    Button newButton(group,tex,x,y,scale,name,counter);
+void AddButton(gerneral::btn_Group group, Texture2D tex, int x, int y,float scale, std::string name,int counter, int id){
+    Button newButton(group,tex,x,y,scale,name,counter,id);
     buttonList.push_back(newButton);
 }
 void RemoveButton(const int& id)
@@ -60,9 +60,9 @@ void DrawSoundboardButton(){
 void UpdateSoundboardButton(){
     for(auto& b : buttonList){
         if(b.GetGroup() == gerneral::btn_Group::Soundboard_Group)
-            if(b.GetName() =="AddSound")
+        if(b.GetName() =="AddSound")
             {
-                b.UpdateY(60 + (counter * 60.0f) - gerneral::scrollOffset);
+                b.UpdateY(60 + (SoundCountOffset * 60.0f) - gerneral::scrollOffset);
             }
             else{
                 b.UpdateY(b.GetY() +(b.GetCounter() * 60.0f) - gerneral::scrollOffset);

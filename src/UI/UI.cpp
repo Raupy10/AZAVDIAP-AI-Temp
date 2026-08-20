@@ -41,7 +41,7 @@ void SoundboardUI(float T_StartX,float T_StartY){
         if (gerneral::scrollOffset < 0) gerneral::scrollOffset = 0;
     }
 
-    float maxScroll = (counter * 60.0f) - 300.0f;
+    float maxScroll = (gerneral::SoundID * 60.0f) - 300.0f;
     if (maxScroll < 0) maxScroll = 0;
     if (gerneral::scrollOffset > maxScroll) gerneral::scrollOffset = maxScroll;
 

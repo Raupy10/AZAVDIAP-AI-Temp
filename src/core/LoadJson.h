@@ -17,9 +17,11 @@ namespace LoadJson {
     
         for(auto& sound : config["sounds"])
         {
-            addSound("New Sound",sound["key"],sound["path"],false);
+            addSound("New Sound",sound["key"],sound["path"],false, sound["id"]);
         }
         }
+        gerneral::SoundID =config["general"]["soundsID"];
+        std::cout << gerneral::SoundID << std::endl;
     UpdateSoundboardButton();
     }
 
@@ -39,12 +41,14 @@ namespace LoadJson {
 
     in >> config;
 
-
+    std::cout << "gesucht:" << id << std::endl;
     for (auto it = config["sounds"].begin(); it != config["sounds"].end(); ++it)
     {
+        std::cout << (*it) ["id"] << std::endl;
         if ((*it)["id"] == id)
         {
             config["sounds"].erase(it);
+            std::cout << "gefunden:" << (*it) ["id"] << std::endl;
             break;
         }
     }

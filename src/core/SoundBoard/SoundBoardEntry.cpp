@@ -22,6 +22,7 @@ SoundboardEntry::SoundboardEntry(float y){
 }
 
 void SoundboardEntry::Draw(){
+    drawY = y - gerneral::scrollOffset;
     Rectangle rec = {x,drawY,width,height};
     DrawRectangleRoundedLines(rec, 0.5, 1, DARKGRAY);
     if(name == "button"){

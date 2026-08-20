@@ -4,28 +4,22 @@
 #include <iostream>
 #include <string>
 
-void addSound(std::string name,std::string text,std::string path, bool IsnewSound){
-    int tempy = 60 + (counter * 60); 
-    counter++;
-    yPosAddButton = 60 +(counter * 60);
+void addSound(std::string name,std::string text,std::string path, bool IsnewSound, int id){
+    int tempy = 60 + (SoundCountOffset * 60); 
+    gerneral::SoundID++;
+    SoundCountOffset++;
+    yPosAddButton = 60 +(SoundCountOffset * 60);
 
-    AddButton(gerneral::btn_Group::Soundboard_Group, Trash_Icon, 730, 5, 1.5f, "Trash",counter);
-    AddButton(gerneral::btn_Group::Soundboard_Group, Circle_play_Icon, 70, 12, 1.2f, "Play",counter);
-
-
-    SoundboardEntry newSound(name, tempy, counter);
+    SoundboardEntry newSound(name, tempy, gerneral::SoundID);
     Sounds.push_back(newSound);
     gerneral::justAdded = true;
 
     for( auto& s : Sounds)
     {
-        if(s.GetName() == "button") s.UpdateY(60 +( counter * 60));
-        UpdateButtonPosY((60+(counter * 60)), "AddSound");
+        if(s.GetName() == "button") s.UpdateY(60 +( SoundCountOffset * 60));
+        UpdateButtonPosY((60+(SoundCountOffset * 60)), "AddSound");
     }
 
-    
-    
-    
     
     json config;
     std::ifstream in(gerneral::configPath);
@@ -40,10 +34,14 @@ void addSound(std::string name,std::string text,std::string path, bool IsnewSoun
         if(IsnewSound)
         {
             config["sounds"].push_back({
-            {"id", counter},
+            {"id", gerneral::SoundID},
             {"key", ""},
             {"path", ""},
             });
+            AddButton(gerneral::btn_Group::Soundboard_Group, Trash_Icon, 730, 5, 1.5f, "Trash",SoundCountOffset,gerneral::SoundID);
+            AddButton(gerneral::btn_Group::Soundboard_Group, Circle_play_Icon, 70, 12, 1.2f, "Play",SoundCountOffset,gerneral::SoundID);
+
+            config["general"]["soundsID"] = gerneral::SoundID;
 
         std::ofstream out(gerneral::configPath);
         out << config.dump(4);
@@ -51,6 +49,8 @@ void addSound(std::string name,std::string text,std::string path, bool IsnewSoun
         else{
             newSound.SetKey(text);
             newSound.SetPath(path);
+            AddButton(gerneral::btn_Group::Soundboard_Group, Trash_Icon, 730, 5, 1.5f, "Trash",SoundCountOffset,id);
+            AddButton(gerneral::btn_Group::Soundboard_Group, Circle_play_Icon, 70, 12, 1.2f, "Play",SoundCountOffset,id);
         }
         
         
@@ -90,6 +90,7 @@ void UpdateSoundBoardBoxes(){
 }
 void RemoveEntry(const int& id)
 {
+    SoundCountOffset--;
     int Location =0;
     for(auto it = Sounds.begin(); it < Sounds.end();it++)
     {
@@ -107,11 +108,9 @@ void RemoveEntry(const int& id)
             S.UpdateY();
         }
     }
-    if(counter>0) counter--;
-    std::cout << counter << std::endl;
     for( auto& s : Sounds)
     {
-        if(s.GetName() == "button") s.UpdateY(60 +( counter * 60));
-        UpdateButtonPosY((60+(counter * 60)), "AddSound");
+        if(s.GetName() == "button") s.UpdateY(60 +( SoundCountOffset * 60));
+        UpdateButtonPosY((60+(SoundCountOffset * 60)), "AddSound");
     }
 }

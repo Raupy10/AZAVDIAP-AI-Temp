@@ -6,14 +6,16 @@ else
     RUN = ./build/AZAVDIAP
 endif
 
-all: build
-	$(RUN)
+.PHONY: build run clean configure
 
-build:
-	cmake -B build $(GENERATOR) && cmake --build build
+build: configure
+	cmake --build build
+
+configure:
+	cmake -B build $(GENERATOR)
+
+run: build
+	$(RUN)
 
 clean:
 	rm -rf build
-
-run:
-	cmake --build build && $(RUN)

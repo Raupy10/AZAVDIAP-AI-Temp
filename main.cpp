@@ -77,7 +77,7 @@ void checkConfig()
     );
 
     fs::copy_file(
-        "/usr/local/share/soundboard/default_config.json",
+        "default_config.json",
         config
     );
 }

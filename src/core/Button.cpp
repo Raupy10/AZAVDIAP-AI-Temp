@@ -21,7 +21,7 @@ Button::Button(gerneral::btn_Group group,std::string name,int x,int y,Vector2 si
     this-> size = size;
     this->rounding = rounding;
 }
-Button::Button(gerneral::btn_Group group,Texture2D tex,int x,int y,float scale,std::string name,int counter){
+Button::Button(gerneral::btn_Group group,Texture2D tex,int x,int y,float scale,std::string name,int counter, int id){
     this->group = group;
     this->name = name;
     this->texture = tex;
@@ -32,6 +32,7 @@ Button::Button(gerneral::btn_Group group,Texture2D tex,int x,int y,float scale,s
     this->preScaleY = y;
     this->rounding = 0;
     this->counter = counter;
+    this->id = id;
 }
 
 
@@ -83,4 +84,12 @@ int Button::GetCounter(){
 }
 void Button::SetCounter(const int& counter){
     this->counter = counter;
+}
+int Button::GetID()
+{
+    return id;
+}
+void Button::SetID(const int& id)
+{
+    this->id =id;
 }

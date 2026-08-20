@@ -28,7 +28,7 @@ class Button
     public:
     Button(gerneral::btn_Group group,std::string name,Texture2D texture,float scale,int x,int y,gerneral::Tab tab);
     Button(gerneral::btn_Group group,std::string name,int x,int y,Vector2 size, float rounding);
-    Button(gerneral::btn_Group group,Texture2D tex, int x,int y,float scale,std::string name,int counter);
+    Button(gerneral::btn_Group group,Texture2D tex, int x,int y,float scale,std::string name,int counter, int id);
     void Draw();
     void SetTexture(Texture2D texture);
     bool Update(Vector2 mousePos);
@@ -39,6 +39,8 @@ class Button
     int GetCounter();
     void SetCounter(const int& counter);
     void UpdateY(float y);
+    int GetID();
+    void SetID(const int& id);
 
     
 };

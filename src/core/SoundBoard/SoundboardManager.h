@@ -7,12 +7,12 @@
 #include "../../UI/Theme.h"
 
 inline std::vector<SoundboardEntry> Sounds;
-inline int counter = 0;
 inline std::string ButtonName;
 inline float yPosAddButton;
+inline int SoundCountOffset = 0;
 
 
-void addSound(std::string name,std::string text,std::string path,bool IsnewSound);
+void addSound(std::string name,std::string text,std::string path,bool IsnewSound, int id);
 void RenderSoundboard();
 void CheckButtonPressed();
 void InitSoundboardAddButton();
