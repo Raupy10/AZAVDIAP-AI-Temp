@@ -1,7 +1,19 @@
 # AZAVDIAP (Ausgabeprogramm zum Abspielen von Dateien in anderen Programmen)
->**English** = Output program for playing files in other programs
+> **English** = PFPMIOE (Program For Playing Media In Other Executables)
 
-This project is still a work in progress.
+**AZAVDIAP is downloadable but it's still in early beta and not really usable!**
+
+**If you want to get notified when it's releasing give us a star and watch this repo**
+
+**Also please consider a little donation to help us develop more cool stuff in the future!**
+<a href="https://buymeacoffee.com/teamnightfall" target="_blank">
+  <img src="https://buymeacoffee.com/assets/img/custom_images/orange_img.png"
+       alt="Buy Me A Coffee">
+</a>
+
+AZAVDIAP is a free and lightweight soundboard designed to play sounds for your games and other programs.
+it uses a clean interface with as less junk as possible to ensure a great experience without evapourating your RAM.
+
 
 ## Dependencies
 
@@ -21,7 +33,7 @@ This project is still a work in progress.
 
 Use the following commands:
 
-> The Windows version may not work probably since the latest Update. This is a know issue and will be fixed soon
+> The Windows version may not work probably since the last Update. This will be fixed with the full release.
 
 ### To make and build:
 ```bash
@@ -42,4 +54,22 @@ make run
 ```
 
 ## Usage
-Coming soon. 
+
+### Setup
+- **Select your default input and output device** and test if they're working.
+> **If on Windows:** make sure your input and output devices are set as default for communication.
+
+- **Start importing sounds** and assign a keybind to them.
+
+- **Set the input of your desired program to "Output (AZAVDIAP)"**, test if the program detects your mic and sounds
+  and adjust the volume of AZAVDIAP.
+> **If on Windows:** if you don't hear anything while using AZAVDIAP check if your output device is set as default for communication
+  and do the same for your microphone if your desired program doesn't detect you speaking.
+
+**And with that you should be good to go!**
+
+### Donations
+Here is our Buy Me A Coffe link for donations!
+<a href="https://buymeacoffee.com/teamnightfall" target="_blank">
+  <img src="https://buymeacoffee.com/assets/img/custom_images/orange_img.png"
+       alt="Buy Me A Coffee">
