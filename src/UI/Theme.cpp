@@ -1,4 +1,5 @@
 #include "Theme.h"
+#include "EmbeddedAssets.h"
 #include <raylib.h>
 
 Texture2D Soundboard_Icon;
@@ -14,15 +15,21 @@ const Color Color_BG   = {44, 47, 54, 255};
 const Color Color_Line = {80, 80, 80, 255};
 const Color Color_OverlayBG = {35, 41, 51,120};
 
+static Texture2D LoadEmbedded(const unsigned char* data, int size)
+{
+    Image image = LoadImageFromMemory(".png", data, size);
+    Texture2D texture = LoadTextureFromImage(image);
+    UnloadImage(image);
+    return texture;
+}
+
 void LoadTextures()
 {
-    Soundboard_Icon = LoadTexture("Art/audio-lines.png");
-    Mic_Icon = LoadTexture("Art/mic.png");
-    Settings_Icon = LoadTexture("Art/settings.png");
-    Import_Icon = LoadTexture("Art/Soundboard/import.png");
-    Add_Icon = LoadTexture("Art/Soundboard/circle-plus.png");
-    Trash_Icon = LoadTexture("Art/Soundboard/trash.png");
-    Circle_pause_Icon = LoadTexture("Art/Soundboard/circle-pause.png");
-    Circle_play_Icon = LoadTexture("Art/Soundboard/circle-play.png");
-
+    Soundboard_Icon = LoadEmbedded(Asset_audio_lines, sizeof(Asset_audio_lines));
+    Mic_Icon = LoadEmbedded(Asset_mic, sizeof(Asset_mic));
+    Settings_Icon = LoadEmbedded(Asset_settings, sizeof(Asset_settings));
+    Add_Icon = LoadEmbedded(Asset_circle_plus, sizeof(Asset_circle_plus));
+    Trash_Icon = LoadEmbedded(Asset_trash, sizeof(Asset_trash));
+    Circle_pause_Icon = LoadEmbedded(Asset_circle_pause, sizeof(Asset_circle_pause));
+    Circle_play_Icon = LoadEmbedded(Asset_circle_play, sizeof(Asset_circle_play));
 }

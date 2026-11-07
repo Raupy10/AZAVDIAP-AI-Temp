@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.18)
 project(AZAVDIAP CXX)
 
+if(WIN32)
+    enable_language(RC)
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -62,6 +66,9 @@ file(GLOB_RECURSE PROJECT_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
 list(APPEND PROJECT_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
+if(WIN32)
+    list(APPEND PROJECT_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/app.rc")
+endif()
 
 
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
@@ -84,6 +91,15 @@ if(WIN32)
         shell32
         ole32
     )
+    if(MINGW)
+        target_link_options(${PROJECT_NAME} PRIVATE
+            -mwindows
+            -static
+            -static-libgcc
+            -static-libstdc++
+            -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive
+        )
+    endif()
 elseif(UNIX AND NOT APPLE)
 
     target_link_libraries(${PROJECT_NAME} PRIVATE

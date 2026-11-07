@@ -75,9 +75,19 @@ make run
 - **Global hotkeys** on/off (on by default).
 - **Sound folder** and **"Nach MP3 suchen"** to add all mp3 files in that folder (and subfolders) at once.
 
+### Background mode (Windows)
+Closing the window does not quit the program. It keeps running in the notification area next to the clock
+(you may need to open the hidden icons). Left click the icon to open the window,
+right click and **Beenden** to quit completely. Starting the program again just opens the running window.
+
 ### Stream Deck
 Add a **Hotkey** action to a Stream Deck button and send the same hotkey as the sound (for example F13-F24,
 which games normally don't use). No plugin is needed.
+
+### Windows exe
+Every push to `main` builds `AZAVDIAP.exe` (a single file, no extra files needed) with GitHub Actions.
+Download it from the **latest** release or from the **Actions** tab (artifact "AZAVDIAP-windows").
+If this repository is a fork, Actions must be enabled once under the **Actions** tab.
 
 ### Donations
 Here is our Buy Me A Coffe link for donations!

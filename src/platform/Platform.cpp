@@ -1,7 +1,10 @@
 #include "Platform.h"
+#include <atomic>
 #include <cctype>
+#include <string>
 #include <cstdio>
 #include <cstdlib>
+#include <cwchar>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -107,7 +110,7 @@ std::string PickFolder(const std::string& startDir){
     wchar_t name[MAX_PATH] = {0};
     BROWSEINFOW bi = {};
     bi.pszDisplayName = name;
-    bi.lpszTitle = L"Ordner auswählen";
+    bi.lpszTitle = L"Ordner ausw\u00e4hlen";
     bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
     bi.lpfn = FolderInit;
     bi.lParam = dir.empty() ? 0 : (LPARAM)dir.c_str();
@@ -122,6 +125,96 @@ std::string PickFolder(const std::string& startDir){
 }
 
 std::string RunCommand(const std::string&){ return ""; }
+
+namespace {
+constexpr UINT WM_TRAY = WM_APP + 1;
+constexpr UINT ID_OPEN = 1001;
+constexpr UINT ID_QUIT = 1002;
+HWND g_hwnd = nullptr;
+WNDPROC g_oldProc = nullptr;
+NOTIFYICONDATAW g_nid = {};
+bool g_added = false;
+UINT g_taskbarMsg = 0;
+std::atomic<bool> g_quit{false};
+std::atomic<bool> g_hidden{false};
+
+void ShowMain(){
+    ShowWindow(g_hwnd, SW_SHOW);
+    ShowWindow(g_hwnd, SW_RESTORE);
+    SetForegroundWindow(g_hwnd);
+    g_hidden = false;
+}
+
+LRESULT CALLBACK TrayProc(HWND h, UINT msg, WPARAM wp, LPARAM lp){
+    if(msg == g_taskbarMsg && g_added){
+        Shell_NotifyIconW(NIM_ADD, &g_nid);
+        return 0;
+    }
+    if(msg == WM_CLOSE && g_added){
+        ShowWindow(h, SW_HIDE);
+        g_hidden = true;
+        return 0;
+    }
+    if(msg == WM_TRAY){
+        if(lp == WM_LBUTTONUP || lp == WM_LBUTTONDBLCLK){
+            ShowMain();
+        }
+        else if(lp == WM_RBUTTONUP || lp == WM_CONTEXTMENU){
+            HMENU menu = CreatePopupMenu();
+            AppendMenuW(menu, MF_STRING, ID_OPEN, L"\u00d6ffnen");
+            AppendMenuW(menu, MF_STRING, ID_QUIT, L"Beenden");
+            POINT pt;
+            GetCursorPos(&pt);
+            SetForegroundWindow(h);
+            UINT cmd = (UINT)TrackPopupMenu(menu, TPM_RETURNCMD | TPM_NONOTIFY | TPM_RIGHTBUTTON, pt.x, pt.y, 0, h, nullptr);
+            DestroyMenu(menu);
+            PostMessageW(h, WM_NULL, 0, 0);
+            if(cmd == ID_OPEN) ShowMain();
+            else if(cmd == ID_QUIT) g_quit = true;
+        }
+        return 0;
+    }
+    return CallWindowProcW(g_oldProc, h, msg, wp, lp);
+}
+}
+
+bool AlreadyRunning(){
+    HANDLE mutex = CreateMutexW(nullptr, TRUE, L"Local\\AZAVDIAP_SingleInstance");
+    if(mutex && GetLastError() == ERROR_ALREADY_EXISTS){
+        HWND other = FindWindowW(nullptr, L"AZAVDIAP");
+        if(other) PostMessageW(other, WM_TRAY, 0, WM_LBUTTONUP);
+        return true;
+    }
+    return false;
+}
+
+bool TrayInit(void* nativeWindow, const char* tip){
+    g_hwnd = (HWND)nativeWindow;
+    if(!g_hwnd) return false;
+    g_taskbarMsg = RegisterWindowMessageW(L"TaskbarCreated");
+    g_oldProc = (WNDPROC)SetWindowLongPtrW(g_hwnd, GWLP_WNDPROC, (LONG_PTR)TrayProc);
+
+    g_nid = NOTIFYICONDATAW();
+    g_nid.cbSize = sizeof(g_nid);
+    g_nid.hWnd = g_hwnd;
+    g_nid.uID = 1;
+    g_nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+    g_nid.uCallbackMessage = WM_TRAY;
+    g_nid.hIcon = LoadIconW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(1));
+    if(!g_nid.hIcon) g_nid.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
+    std::wstring wtip = ToWide(tip);
+    wcsncpy(g_nid.szTip, wtip.c_str(), sizeof(g_nid.szTip) / sizeof(wchar_t) - 1);
+    g_added = Shell_NotifyIconW(NIM_ADD, &g_nid) == TRUE;
+    return g_added;
+}
+
+void TrayShutdown(){
+    if(g_added) Shell_NotifyIconW(NIM_DELETE, &g_nid);
+    g_added = false;
+}
+
+bool TrayQuitRequested(){ return g_quit; }
+bool WindowHidden(){ return g_hidden; }
 
 #else
 
@@ -183,6 +276,12 @@ std::string PickFile(const std::string& startDir){
     if(!startDir.empty()) cmd += " --filename=" + Quote(startDir + "/");
     return RunCommand(cmd + " 2>/dev/null");
 }
+
+bool AlreadyRunning(){ return false; }
+bool TrayInit(void*, const char*){ return false; }
+void TrayShutdown(){}
+bool TrayQuitRequested(){ return false; }
+bool WindowHidden(){ return false; }
 
 std::string PickFolder(const std::string& startDir){
     std::string cmd = "zenity --file-selection --directory --title='Ordner auswählen'";

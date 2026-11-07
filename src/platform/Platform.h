@@ -20,4 +20,10 @@ std::string PickFile(const std::string& startDir);
 std::string PickFolder(const std::string& startDir);
 std::string RunCommand(const std::string& cmd);
 
+bool AlreadyRunning();
+bool TrayInit(void* nativeWindow, const char* tip);
+void TrayShutdown();
+bool TrayQuitRequested();
+bool WindowHidden();
+
 }
