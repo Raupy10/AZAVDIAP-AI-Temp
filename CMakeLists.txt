@@ -97,7 +97,6 @@ if(WIN32)
             -static
             -static-libgcc
             -static-libstdc++
-            -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive
         )
     endif()
 elseif(UNIX AND NOT APPLE)
