@@ -26,8 +26,11 @@ it uses a clean interface with as less junk as possible to ensure a great experi
 - **make** - Used to run CMake builds
 - **g++** - Used to run CMake builds
 - **zenity** - Used to get FilePath Input
+- **pactl** (PulseAudio / PipeWire) - Creates the virtual output "AZAVDIAP" automatically
+- **X11** - Global hotkeys work on X11 (and XWayland)
 ### On Windows:
 - **MinGW-w64** - Includes "make" and "g++"
+- **VB-Audio Virtual Cable** (or similar) - Provides the virtual output, detected automatically as "CABLE Input"
 
 ## Installation
 
@@ -39,7 +42,6 @@ Use the following commands:
 ```bash
 make all
 ```
-### To just build:
 ### To just build:
 ```bash 
 make build 
@@ -55,18 +57,27 @@ make run
 
 ## Usage
 
-### Setup
-- **Select your default input and output device** and test if they're working.
-> **If on Windows:** make sure your input and output devices are set as default for communication.
+### Setup (tab "Mikrofon & Ausgabe")
+- **Choose input (microphone), output (headphones) and virtual output.** Every list has a system default entry.
+  The virtual output is detected automatically ("AZAVDIAP" on Linux, "CABLE Input" on Windows).
+- **Set the microphone of your game to the virtual device** ("Monitor of AZAVDIAP" on Linux, "CABLE Output" on Windows).
+  The game always receives your microphone and all sounds mixed together.
+- **Test input** lets you hear yourself while the test runs, **test output** plays a short tone on your output.
+- **"Ich höre"** decides what you hear on your own output: microphone + sounds, only sounds, only microphone or nothing.
 
-- **Start importing sounds** and assign a keybind to them.
+### Sounds (tab "Soundboard")
+- **+** adds a sound entry. Click the sound field to pick an mp3, click the key field and press a key combination
+  (Ctrl/Alt/Shift + A-Z, 0-9 or F1-F24) to set the hotkey. Backspace/Delete clears the hotkey.
+- Play/pause and trash buttons per entry. The list scrolls with the mouse wheel.
+- Sounds are decoded once on first use and kept in memory until the program is closed.
 
-- **Set the input of your desired program to "Output (AZAVDIAP)"**, test if the program detects your mic and sounds
-  and adjust the volume of AZAVDIAP.
-> **If on Windows:** if you don't hear anything while using AZAVDIAP check if your output device is set as default for communication
-  and do the same for your microphone if your desired program doesn't detect you speaking.
+### Settings
+- **Global hotkeys** on/off (on by default).
+- **Sound folder** and **"Nach MP3 suchen"** to add all mp3 files in that folder (and subfolders) at once.
 
-**And with that you should be good to go!**
+### Stream Deck
+Add a **Hotkey** action to a Stream Deck button and send the same hotkey as the sound (for example F13-F24,
+which games normally don't use). No plugin is needed.
 
 ### Donations
 Here is our Buy Me A Coffe link for donations!

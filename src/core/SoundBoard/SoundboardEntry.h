@@ -1,45 +1,34 @@
 #pragma once
 #include "../../UI/Theme.h"
 #include "../../UI/TextBox.h"
-#include <string>
-#include <vector>
-#include <raylib.h>
-#include "../general.h"
+#include "../../UI/Widgets.h"
 #include "../../UI/OpenFileDialog.h"
+#include "../../audio/AudioEngine.h"
+#include "../general.h"
+#include <string>
+#include <raylib.h>
 
 class SoundboardEntry{
 
     private:
-    std::string name;
-    float x = 60;
-    float y = 10;
-    float width = 730;
-    float height = 50;
-    float drawY =y;
+    static constexpr float x = 60;
+    static constexpr float width = 730;
+    static constexpr float height = 50;
+
     int id;
-    
-    inline static int activeBox = -1;
-    inline static int BoxIdCounter = 0;
+    std::string path;
+    TextBox keyBox;
+    TextBox soundBox;
 
-    std::vector<TextBox> boxes = {
-        TextBox({ x+60,  70, 180, 35 }, "set key",   true),  
-        TextBox({ x+250, 70, 400, 35 }, "set sound", false),
-    };
-
-    
     public:
-    SoundboardEntry(std::string name, float y, int id);
-    SoundboardEntry(float y);
-    void Draw();
-    std::string GetName();
-    bool isPressed();
-    void UpdateY(float y);
-    void UpdateBoxes();
-    void SetKey(std::string key);
-    void SetPath(std::string path);
-    int GetCounter();
-    void SetCounter(const int& counter);
-    void UpdateY();
+    enum class Result { Idle, Changed, Remove };
+    inline static int activeKeyId = -1;
 
-
+    SoundboardEntry(int id, const std::string& key, const std::string& path);
+    Result Update(float y);
+    void Draw(float y);
+    int GetID() const;
+    const std::string& GetPath() const;
+    std::string GetKey() const;
+    void SetPath(const std::string& path);
 };

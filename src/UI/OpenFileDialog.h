@@ -1,19 +1,11 @@
+#pragma once
+#include "../platform/Platform.h"
 #include <string>
-#include <cstdio>
 
-inline std::string OpenFileDialog() {
-    FILE* pipe = popen("zenity --file-selection --file-filter='Audio files (mp3) | *.mp3' --title='Sound auswählen'", "r");
-    if (!pipe) return "";
-    
-    char buffer[512];
-    std::string result = "";
-    while (fgets(buffer, sizeof(buffer), pipe) != NULL) {
-        result += buffer;
-    }
-    pclose(pipe);
-    
-    if (!result.empty() && result.back() == '\n')
-        result.pop_back();
-    
-    return result;
+inline std::string OpenFileDialog(const std::string& startDir = "") {
+    return Platform::PickFile(startDir);
+}
+
+inline std::string OpenFolderDialog(const std::string& startDir = "") {
+    return Platform::PickFolder(startDir);
 }

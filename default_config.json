@@ -1,6 +1,12 @@
 {
     "sounds": [],
-    "general":{
-        "soundsID": 0
+    "general": {
+        "soundsID": 0,
+        "hotkeys": true,
+        "soundsFolder": "",
+        "monitorMode": 2,
+        "inputDevice": "",
+        "outputDevice": "",
+        "virtualDevice": ""
     }
 }

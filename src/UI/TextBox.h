@@ -9,13 +9,15 @@ public:
     void Update(bool isActive);
     void Draw();
     bool IsClicked();
-    std::string GetText(){ return text; }
+    std::string GetText() const { return text; }
     void SetText(std::string t) { text = t; }
     bool IsActive() const { return active; }
     void UpdateY(float y) { rect.y = y +7; }
     int GetId() { return id; }
     void SetId(int id) { this->id = id; }
     std::string GetName() { return name; }
+    bool IsEmpty() const { return text == name; }
+    void Clear() { text = name; }
 
 private:
     Rectangle rect;
@@ -23,7 +25,7 @@ private:
     std::string name;
     bool active;
     bool isKeyBox;
-    int id;
+    int id = 0;
     Color colorActive   = { 80, 80, 80, 255 };
     Color colorInactive = { 60, 60, 60, 255 };
     Color colorBorder   = LIGHTGRAY;

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.18)
 project(AZAVDIAP CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -40,7 +40,21 @@ FetchContent_Declare(
     GIT_TAG        "5.5"       
     GIT_PROGRESS   TRUE
 )
-FetchContent_MakeAvailable(raylib)
+FetchContent_Declare(
+    json
+    GIT_REPOSITORY "https://github.com/nlohmann/json.git"
+    GIT_TAG        "v3.11.3"
+    GIT_SHALLOW    TRUE
+)
+
+FetchContent_Declare(
+    miniaudio
+    GIT_REPOSITORY "https://github.com/mackron/miniaudio.git"
+    GIT_TAG        "0.11.22"
+    GIT_SHALLOW    TRUE
+    SOURCE_SUBDIR  none
+)
+FetchContent_MakeAvailable(raylib json miniaudio)
 
 
 file(GLOB_RECURSE PROJECT_SOURCES
@@ -54,9 +68,10 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    "${miniaudio_SOURCE_DIR}"
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
+target_link_libraries(${PROJECT_NAME} PRIVATE raylib nlohmann_json::nlohmann_json)
 
 
 if(WIN32)
@@ -65,6 +80,9 @@ if(WIN32)
         opengl32
         gdi32
         winmm
+        comdlg32
+        shell32
+        ole32
     )
 elseif(UNIX AND NOT APPLE)
 

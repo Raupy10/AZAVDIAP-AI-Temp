@@ -2,7 +2,7 @@
 
 
 TextBox::TextBox(Rectangle rect, const std::string& placeholder, bool isKeyBox)
-    : rect(rect), text(placeholder), active(false), name(placeholder), isKeyBox(isKeyBox) {}
+    : rect(rect), text(placeholder), name(placeholder), active(false), isKeyBox(isKeyBox) {}
 
 void TextBox::Update(bool isActive)
 {
@@ -11,49 +11,34 @@ void TextBox::Update(bool isActive)
 
     if (isKeyBox)
     {
-        bool ctrl  = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
-        bool alt   = IsKeyDown(KEY_LEFT_ALT)     || IsKeyDown(KEY_RIGHT_ALT);
-        bool shift = IsKeyDown(KEY_LEFT_SHIFT)   || IsKeyDown(KEY_RIGHT_SHIFT);
+        if (IsKeyPressed(KEY_BACKSPACE) || IsKeyPressed(KEY_DELETE)) {
+            Clear();
+            return;
+        }
 
-        int fkeys[] = {
-            KEY_F1,KEY_F2,KEY_F3,KEY_F4,KEY_F5,KEY_F6,
-            KEY_F7,KEY_F8,KEY_F9,KEY_F10,KEY_F11,KEY_F12
-        };
-        for (int i = 0; i < 12; i++) {
-            if (IsKeyPressed(fkeys[i])) {
-                std::string result = "";
-                if (ctrl)  result += "Ctrl+";
-                if (alt)   result += "Alt+";
-                if (shift) result += "Shift+";
-                result += "F" + std::to_string(i + 1);
-                text = result;
+        std::string mods = "";
+        if (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) mods += "Ctrl+";
+        if (IsKeyDown(KEY_LEFT_ALT)     || IsKeyDown(KEY_RIGHT_ALT))     mods += "Alt+";
+        if (IsKeyDown(KEY_LEFT_SHIFT)   || IsKeyDown(KEY_RIGHT_SHIFT))   mods += "Shift+";
+
+        for (int i = 0; i < 24; i++) {
+            if (IsKeyPressed(KEY_F1 + i)) {
+                text = mods + "F" + std::to_string(i + 1);
                 return;
             }
         }
-
         for (int key = KEY_A; key <= KEY_Z; key++) {
             if (IsKeyPressed(key)) {
-                std::string result = "";
-                if (ctrl)  result += "Ctrl+";
-                if (alt)   result += "Alt+";
-                if (shift) result += "Shift+";
-                result += (char)('A' + (key - KEY_A));
-                text = result;
+                text = mods + (char)('A' + (key - KEY_A));
                 return;
             }
         }
         for (int key = KEY_ZERO; key <= KEY_NINE; key++) {
             if (IsKeyPressed(key)) {
-                std::string result = "";
-                if (ctrl)  result += "Ctrl+";
-                if (alt)   result += "Alt+";
-                if (shift) result += "Shift+";
-                result += (char)('0' + (key - KEY_ZERO));
-                text = result;
+                text = mods + (char)('0' + (key - KEY_ZERO));
                 return;
             }
         }
-        return; 
     }
 }
 

@@ -1,106 +1,79 @@
 #include "SoundboardEntry.h"
-#include "SoundboardManager.h"
 #include <raylib.h>
 
-
-SoundboardEntry::SoundboardEntry(std::string name, float y, int id){
-    this->name = name;
-
-    this->y = y;
-    this->id = id;
-    boxes[0].UpdateY(y);
-    boxes[0].SetId(BoxIdCounter++);
-    boxes[1].UpdateY(y);
-    boxes[1].SetId(BoxIdCounter++);
-
-
-}
-SoundboardEntry::SoundboardEntry(float y){
-    this->name = "button";
-    this->y = y;
-
+SoundboardEntry::SoundboardEntry(int id, const std::string& key, const std::string& path)
+    : id(id),
+      keyBox({ x + 60, 0, 180, 35 }, "set key", true),
+      soundBox({ x + 250, 0, 400, 35 }, "set sound", false)
+{
+    if(!key.empty()) keyBox.SetText(key);
+    SetPath(path);
 }
 
-void SoundboardEntry::Draw(){
-    drawY = y - gerneral::scrollOffset;
-    Rectangle rec = {x,drawY,width,height};
-    DrawRectangleRoundedLines(rec, 0.5, 1, DARKGRAY);
-    if(name == "button"){
-        DrawTextureEx(Add_Icon, Vector2{x+340,drawY +15},0.0f, 1.0f, WHITE);
+void SoundboardEntry::SetPath(const std::string& p){
+    path = p;
+    if(p.empty()){
+        soundBox.Clear();
+        return;
     }
-    else{
-        boxes[0].Draw();
-        boxes[1].Draw();
-    }
+    soundBox.SetText(UIFit(fs::u8path(p).filename().u8string(), 44));
+}
 
-}
-std::string SoundboardEntry::GetName(){
-    return name;
-}
-bool SoundboardEntry::isPressed(){
-    Rectangle rec = {x,y,width,height};
-    if(CheckCollisionPointRec(GetMousePosition(),  rec)){
-        return true;
-    }
-    return false;
-}
-void SoundboardEntry::UpdateY(float y){
-    this->y = y;
-}
-void SoundboardEntry::UpdateBoxes(){
-    drawY = y - gerneral::scrollOffset;
-    bool IsBoxPressed = false;
-    if(name != "button")
-    {
-        boxes[0].UpdateY(drawY);
-        boxes[1].UpdateY(drawY);
-        if(gerneral::justAdded) return;
-        for (int i = 0; i < (int)boxes.size(); i++){
-            
-            if (boxes[i].IsClicked()) 
-            {
-                IsBoxPressed = true;
-                if(boxes[i].GetName() == "set key") activeBox = boxes[i].GetId();
-                else if (boxes[i].GetName() == "set sound")
-                {
-                     std::string path = OpenFileDialog();
-                    if(path != "")
-                    {
-                        std::string filename = path.substr(path.find_last_of("/") + 1);
-                        boxes[i].SetText(filename);
-                    }
+int SoundboardEntry::GetID() const { return id; }
+const std::string& SoundboardEntry::GetPath() const { return path; }
+std::string SoundboardEntry::GetKey() const { return keyBox.IsEmpty() ? "" : keyBox.GetText(); }
+
+SoundboardEntry::Result SoundboardEntry::Update(float y){
+    Result result = Result::Idle;
+    keyBox.UpdateY(y);
+    soundBox.UpdateY(y);
+
+    Vector2 m = GetMousePosition();
+    Rectangle play = {70, y + 7, 36, 36};
+    Rectangle trash = {728, y + 7, 36, 36};
+
+    if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && m.y >= 50){
+        if(keyBox.IsClicked()){
+            activeKeyId = id;
+        }
+        else{
+            if(activeKeyId == id) activeKeyId = -1;
+            if(soundBox.IsClicked()){
+                std::string p = OpenFileDialog(gerneral::soundsFolder);
+                if(!p.empty()){
+                    SetPath(p);
+                    result = Result::Changed;
                 }
-                 
+            }
+            else if(CheckCollisionPointRec(m, play)){
+                if(Audio::IsPlaying(path)) Audio::Stop(path);
+                else Audio::Play(path);
+            }
+            else if(CheckCollisionPointRec(m, trash)){
+                Audio::Stop(path);
+                result = Result::Remove;
             }
         }
-        if(!IsBoxPressed && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-        {   
-           activeBox = -1;
-        }
-
-        if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_ESCAPE))
-            activeBox = -1;
-
-        for (int i = 0; i < (int)boxes.size(); i++)
-        {
-            boxes[i].Update(activeBox == boxes[i].GetId());
-        }
     }
-}
-void SoundboardEntry::SetKey(std::string key){
- boxes[0].SetText(key);
+
+    std::string before = keyBox.GetText();
+    keyBox.Update(activeKeyId == id);
+    if(keyBox.GetText() != before) result = Result::Changed;
+    if(activeKeyId == id && (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_ESCAPE))) activeKeyId = -1;
+
+    return result;
 }
 
-void SoundboardEntry::SetPath(std::string path){
-boxes[1].SetText(path);
-}
-int SoundboardEntry::GetCounter()
-{
-    return id;
-}
-void SoundboardEntry::SetCounter(const int& counter){
-    this->id = counter;
-}
-void SoundboardEntry::UpdateY(){
-    y -= 60;
+void SoundboardEntry::Draw(float y){
+    DrawRectangleRoundedLines({x, y, width, height}, 0.5, 1, DARKGRAY);
+    keyBox.Draw();
+    soundBox.Draw();
+
+    Rectangle play = {70, y + 7, 36, 36};
+    Rectangle trash = {728, y + 7, 36, 36};
+    Texture2D playTex = Audio::IsPlaying(path) ? Circle_pause_Icon : Circle_play_Icon;
+    if(UIHover(play)) DrawRectangleRounded(play, 0.5, 1, GRAY);
+    if(UIHover(trash)) DrawRectangleRounded(trash, 0.5, 1, GRAY);
+    DrawTextureEx(playTex, Vector2{play.x + 4, play.y + 4}, 0.0f, 1.2f, WHITE);
+    DrawTextureEx(Trash_Icon, Vector2{trash.x + 4, trash.y + 4}, 0.0f, 1.2f, WHITE);
 }
