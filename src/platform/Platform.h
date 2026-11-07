@@ -19,6 +19,7 @@ bool ComboDown(const Combo& c);
 std::string PickFile(const std::string& startDir);
 std::string PickFolder(const std::string& startDir);
 std::string RunCommand(const std::string& cmd);
+void OpenUrl(const std::string& url);
 
 bool AlreadyRunning();
 bool TrayInit(void* nativeWindow, const char* tip);

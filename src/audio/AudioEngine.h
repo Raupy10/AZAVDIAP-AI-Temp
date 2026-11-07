@@ -16,6 +16,8 @@ const std::vector<std::string>& VirtualNames();
 
 bool Start(const std::string& in, const std::string& out, const std::string& virt);
 const std::string& Status();
+bool HasVirtual();
+const std::string& VirtualMic();
 
 void SetMonitorMode(int mode);
 void SetInputTest(bool on);

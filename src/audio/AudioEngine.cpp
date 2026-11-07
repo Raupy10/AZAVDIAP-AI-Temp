@@ -104,6 +104,7 @@ std::vector<std::string> inNames, outNames, virtNames;
 std::vector<ma_device_id> inIds, outIds;
 std::string status = "Audio nicht gestartet";
 std::string sinkModule;
+std::string virtMic;
 
 std::mutex vm;
 std::vector<Voice> voices;
@@ -222,6 +223,17 @@ void StopDevices(){
     hasVirtual = false;
 }
 
+std::string MicNameFor(const std::string& playback){
+#ifdef _WIN32
+    std::string name = playback;
+    size_t p = name.rfind("Input");
+    if(p != std::string::npos) name.replace(p, 5, "Output");
+    return name;
+#else
+    return "Monitor of " + playback;
+#endif
+}
+
 Pcm Decode(const std::string& path){
     ma_decoder_config dc = ma_decoder_config_init(ma_format_s16, 2, kRate);
     ma_decoder dec;
@@ -314,6 +326,8 @@ const std::vector<std::string>& InputNames(){ return inNames; }
 const std::vector<std::string>& OutputNames(){ return outNames; }
 const std::vector<std::string>& VirtualNames(){ return virtNames; }
 const std::string& Status(){ return status; }
+bool HasVirtual(){ return hasVirtual; }
+const std::string& VirtualMic(){ return virtMic; }
 
 bool Start(const std::string& in, const std::string& out, const std::string& virt){
     StopDevices();
@@ -333,6 +347,7 @@ bool Start(const std::string& in, const std::string& out, const std::string& vir
         }
     }
     hasVirtual = virtId != nullptr;
+    virtMic = hasVirtual ? MicNameFor(virtName) : "";
     ring.Reset();
 
     ma_device_config c = ma_device_config_init(ma_device_type_duplex);
@@ -355,6 +370,7 @@ bool Start(const std::string& in, const std::string& out, const std::string& vir
     if(r != MA_SUCCESS || ma_device_start(&primary) != MA_SUCCESS){
         if(r == MA_SUCCESS) ma_device_uninit(&primary);
         hasVirtual = false;
+        virtMic.clear();
         status = "Fehler: Ausgabegerät konnte nicht geöffnet werden";
         return false;
     }
@@ -374,7 +390,7 @@ bool Start(const std::string& in, const std::string& out, const std::string& vir
     }
 
     if(hasVirtual) status = "Spiel-Ausgang: " + virtName;
-    else status = "Kein virtueller Ausgang gefunden (AZAVDIAP / CABLE Input) - nur lokale Ausgabe";
+    else status = "Kein virtuelles Mikrofon gefunden - nur lokale Ausgabe";
     if(!micOk) status += " | Mikrofon nicht verfügbar";
     else if(hasVirtual && !secondaryOk) status += " | Abhörgerät nicht verfügbar";
     return true;

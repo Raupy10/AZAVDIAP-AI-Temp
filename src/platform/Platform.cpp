@@ -5,6 +5,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cwchar>
+#include <functional>
+#include <thread>
 
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -91,7 +93,7 @@ bool ComboDown(const Combo& c){
     return c.ctrl == Down(VK_CONTROL) && c.alt == Down(VK_MENU) && c.shift == Down(VK_SHIFT);
 }
 
-std::string PickFile(const std::string& startDir){
+static std::string PickFileImpl(const std::string& startDir){
     wchar_t buf[MAX_PATH * 4] = {0};
     std::wstring dir = ToWide(startDir);
     OPENFILENAMEW ofn = {};
@@ -110,8 +112,7 @@ static int CALLBACK FolderInit(HWND hwnd, UINT msg, LPARAM, LPARAM data){
     return 0;
 }
 
-std::string PickFolder(const std::string& startDir){
-    CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+static std::string PickFolderImpl(const std::string& startDir){
     std::wstring dir = ToWide(startDir);
     wchar_t name[MAX_PATH] = {0};
     BROWSEINFOW bi = {};
@@ -128,6 +129,39 @@ std::string PickFolder(const std::string& startDir){
         CoTaskMemFree(pidl);
     }
     return result;
+}
+
+static std::string RunSta(const std::function<std::string()>& fn){
+    std::string result;
+    std::atomic<bool> done{false};
+    std::thread worker([&]{
+        CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+        result = fn();
+        CoUninitialize();
+        done = true;
+    });
+    while(!done){
+        MSG msg;
+        while(PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)){
+            TranslateMessage(&msg);
+            DispatchMessageW(&msg);
+        }
+        Sleep(15);
+    }
+    worker.join();
+    return result;
+}
+
+std::string PickFile(const std::string& startDir){
+    return RunSta([&]{ return PickFileImpl(startDir); });
+}
+
+std::string PickFolder(const std::string& startDir){
+    return RunSta([&]{ return PickFolderImpl(startDir); });
+}
+
+void OpenUrl(const std::string& url){
+    ShellExecuteW(nullptr, L"open", ToWide(url).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 }
 
 std::string RunCommand(const std::string&){ return ""; }
@@ -264,6 +298,16 @@ static std::string Quote(const std::string& s){
         else r += c;
     }
     return r + "'";
+}
+
+void OpenUrl(const std::string& url){
+    std::string q = "'";
+    for(char c : url){
+        if(c == '\'') q += "'\\''";
+        else q += c;
+    }
+    q += "'";
+    RunCommand("xdg-open " + q + " >/dev/null 2>&1 &");
 }
 
 std::string RunCommand(const std::string& cmd){

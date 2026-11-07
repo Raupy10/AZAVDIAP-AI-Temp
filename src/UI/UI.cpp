@@ -3,6 +3,7 @@
 #include "Widgets.h"
 #include "OpenFileDialog.h"
 #include "../audio/AudioEngine.h"
+#include "../platform/Platform.h"
 #include "../core/Hotkeys.h"
 #include "../core/LoadJson.h"
 #include <algorithm>
@@ -52,7 +53,10 @@ void RenderUI()
     static gerneral::Tab previous = gerneral::Tab::None;
     if(gerneral::currentTab != previous){
         if(previous == gerneral::Tab::Mic) Audio::SetInputTest(false);
-        if(gerneral::currentTab == gerneral::Tab::Mic) Audio::RefreshDevices();
+        if(gerneral::currentTab == gerneral::Tab::Mic){
+            Audio::RefreshDevices();
+            if(!Audio::HasVirtual()) ApplyAudio();
+        }
         previous = gerneral::currentTab;
     }
 
@@ -92,7 +96,7 @@ void MicUI(float T_StartX,float T_StartY){
     bool changed = false;
     changed |= Select(60, "Eingabegerät (Mikrofon)", Audio::InputNames(), gerneral::inputDevice, false);
     changed |= Select(125, "Ausgabegerät (Kopfhörer / Lautsprecher)", Audio::OutputNames(), gerneral::outputDevice, false);
-    changed |= Select(190, "Virtueller Ausgang (Eingabegerät im Spiel)", Audio::VirtualNames(), gerneral::virtualDevice, true);
+    changed |= Select(190, "Virtuelles Mikrofon (geht an das Spiel, du h\u00f6rst es nicht)", Audio::VirtualNames(), gerneral::virtualDevice, true);
     if(changed) ApplyAudio();
 
     bool testing = Audio::InputTest();
@@ -117,7 +121,16 @@ void MicUI(float T_StartX,float T_StartY){
         LoadJson::SaveGeneral();
     }
 
-    UILabel(UIFit(Audio::Status(), 100), 70, 395, 14, LIGHTGRAY);
+    if(Audio::HasVirtual()){
+        UILabel(UIFit("Im Spiel als Mikrofon w\u00e4hlen: " + Audio::VirtualMic(), 90), 70, 385, 16, GREEN);
+        UILabel(UIFit(Audio::Status(), 100), 70, 410, 14, LIGHTGRAY);
+    }
+    else{
+        bool failed = Audio::Status().rfind("Fehler", 0) == 0;
+        UILabel(failed ? Audio::Status() : "Kein virtuelles Mikrofon gefunden - das Spiel h\u00f6rt dich so nicht.", 70, 385, 16, ORANGE);
+        if(UIButton({70, 408, 210, 30}, "VB-CABLE herunterladen")) Platform::OpenUrl("https://vb-audio.com/Cable/");
+        UILabel("Nach der Installation Windows neu starten.", 292, 416, 14, LIGHTGRAY);
+    }
 }
 
 void SettingsUI(float T_StartX,float T_StartY){

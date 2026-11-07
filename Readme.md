@@ -60,8 +60,12 @@ make run
 ### Setup (tab "Mikrofon & Ausgabe")
 - **Choose input (microphone), output (headphones) and virtual output.** Every list has a system default entry.
   The virtual output is detected automatically ("AZAVDIAP" on Linux, "CABLE Input" on Windows).
-- **Set the microphone of your game to the virtual device** ("Monitor of AZAVDIAP" on Linux, "CABLE Output" on Windows).
-  The game always receives your microphone and all sounds mixed together.
+- **Set the microphone of your game to the virtual device.** The program shows the exact name at the bottom of the tab
+  ("Monitor of AZAVDIAP" on Linux, "CABLE Output (VB-Audio Virtual Cable)" on Windows).
+  The game always receives your microphone and all sounds mixed together, you don't hear this channel.
+  If the game has no microphone selection, set that device as the Windows default recording device.
+- **Windows needs a driver for a virtual microphone.** Install the free [VB-CABLE](https://vb-audio.com/Cable/)
+  once and restart Windows. The program detects it automatically and offers a download button until it is found.
 - **Test input** lets you hear yourself while the test runs, **test output** plays a short tone on your output.
 - **"Ich höre"** decides what you hear on your own output: microphone + sounds, only sounds, only microphone or nothing.
 
