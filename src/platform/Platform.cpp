@@ -207,7 +207,7 @@ bool TrayInit(void* nativeWindow, const char* tip){
     g_nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
     g_nid.uCallbackMessage = WM_TRAY;
     g_nid.hIcon = LoadIconW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(1));
-    if(!g_nid.hIcon) g_nid.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
+    if(!g_nid.hIcon) g_nid.hIcon = LoadIconW(nullptr, MAKEINTRESOURCEW(32512));
     std::wstring wtip = ToWide(tip);
     wcsncpy(g_nid.szTip, wtip.c_str(), sizeof(g_nid.szTip) / sizeof(wchar_t) - 1);
     g_added = Shell_NotifyIconW(NIM_ADD, &g_nid) == TRUE;
