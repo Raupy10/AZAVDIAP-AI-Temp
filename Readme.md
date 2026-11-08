@@ -77,6 +77,9 @@ make run
 
 ### Settings
 - **Global hotkeys** on/off (on by default).
+- **Pressing a hotkey again** while its sound plays: *Überlagern* (starts it again on top, default),
+  *Neu starten* (stops that sound and restarts it) or *Ein / Aus* (second press stops it).
+- **Alle Sounds stoppen**: its own hotkey (click the field, press the keys, Backspace clears it) plus a "Jetzt stoppen" button.
 - **Sound folder** and **"Nach MP3 suchen"** to add all mp3 files in that folder (and subfolders) at once.
 
 ### Background mode (Windows)

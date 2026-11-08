@@ -23,6 +23,7 @@ void SyncHotkeys(){
     std::vector<Hotkeys::Bind> binds;
     for(auto& s : Sounds)
         if(!s.GetKey().empty() && !s.GetPath().empty()) binds.push_back({s.GetKey(), s.GetPath()});
+    if(!gerneral::stopAllKey.empty()) binds.push_back({gerneral::stopAllKey, "", true});
     Hotkeys::SetBinds(binds);
 }
 

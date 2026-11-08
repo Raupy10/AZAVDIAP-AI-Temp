@@ -20,6 +20,8 @@ void Load(){
     gerneral::inputDevice = g.value("inputDevice", "");
     gerneral::outputDevice = g.value("outputDevice", "");
     gerneral::virtualDevice = g.value("virtualDevice", "");
+    gerneral::retriggerMode = g.value("retriggerMode", 0);
+    gerneral::stopAllKey = g.value("stopAllKey", "");
 
     for(auto& s : cfg["sounds"]) if(s.contains("id")) gerneral::SoundID = std::max<int>(gerneral::SoundID, s["id"].get<int>());
 
@@ -42,6 +44,8 @@ void SaveGeneral(){
     g["inputDevice"] = gerneral::inputDevice;
     g["outputDevice"] = gerneral::outputDevice;
     g["virtualDevice"] = gerneral::virtualDevice;
+    g["retriggerMode"] = gerneral::retriggerMode;
+    g["stopAllKey"] = gerneral::stopAllKey;
     Save();
 }
 

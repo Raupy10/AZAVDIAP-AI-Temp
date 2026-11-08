@@ -7,6 +7,7 @@ namespace Hotkeys {
 struct Bind {
     std::string combo;
     std::string path;
+    bool stopAll = false;
 };
 
 void Start();

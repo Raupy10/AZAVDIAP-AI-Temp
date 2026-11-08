@@ -25,7 +25,9 @@ bool InputTest();
 float InputLevel();
 void PlayTestTone();
 
+void SetRetriggerMode(int mode);
 void Play(const std::string& path);
+void Trigger(const std::string& path);
 bool IsPlaying(const std::string& path);
 void Stop(const std::string& path);
 void StopAll();

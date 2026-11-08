@@ -42,4 +42,7 @@ inline int monitorMode = 2;
 inline std::string inputDevice;
 inline std::string outputDevice;
 inline std::string virtualDevice;
+inline int retriggerMode = 0;
+inline std::string stopAllKey;
+inline bool settingsKeyActive = false;
 }

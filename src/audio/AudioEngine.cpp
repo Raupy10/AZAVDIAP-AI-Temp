@@ -116,6 +116,8 @@ std::atomic<int> pending{0};
 
 std::atomic<int> mode{2};
 std::atomic<bool> inputTest{false};
+std::atomic<int> retrigger{0};
+std::atomic<unsigned> epoch{0};
 std::atomic<float> level{0.0f};
 Ring ring;
 
@@ -416,14 +418,15 @@ void Play(const std::string& path){
         return;
     }
     pending++;
-    std::thread([path]{
+    const unsigned startEpoch = epoch;
+    std::thread([path, startEpoch]{
         Pcm data = Decode(path);
         {
             std::lock_guard<std::mutex> lk(cm);
             if(data) cache[path] = data;
             loading.erase(path);
         }
-        if(data) AddVoice(data, false);
+        if(data && startEpoch == epoch) AddVoice(data, false);
         pending--;
     }).detach();
 }
@@ -444,8 +447,21 @@ void Stop(const std::string& path){
 }
 
 void StopAll(){
+    epoch++;
     std::lock_guard<std::mutex> lk(vm);
     voices.clear();
+}
+
+void SetRetriggerMode(int m){ retrigger = m; }
+
+void Trigger(const std::string& path){
+    int m = retrigger;
+    if(m == 2 && IsPlaying(path)){
+        Stop(path);
+        return;
+    }
+    if(m == 1) Stop(path);
+    Play(path);
 }
 
 }

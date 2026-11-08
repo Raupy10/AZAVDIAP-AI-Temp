@@ -53,6 +53,7 @@ void RenderUI()
     static gerneral::Tab previous = gerneral::Tab::None;
     if(gerneral::currentTab != previous){
         if(previous == gerneral::Tab::Mic) Audio::SetInputTest(false);
+        if(previous == gerneral::Tab::Settings) gerneral::settingsKeyActive = false;
         if(gerneral::currentTab == gerneral::Tab::Mic){
             Audio::RefreshDevices();
             if(!Audio::HasVirtual()) ApplyAudio();
@@ -164,5 +165,42 @@ void SettingsUI(float T_StartX,float T_StartY){
     }
     UILabel(scanMessage, 285, 220);
 
-    UILabel("Stream Deck: Aktion \"Hotkey\" auf einen Knopf legen und denselben Hotkey (z.B. F13) senden.", 70, 400, 14, LIGHTGRAY);
+    UILabel("Beim erneuten Dr\u00fccken eines Hotkeys:", 70, 262);
+    static const char* retriggerLabels[3] = {"\u00dcberlagern", "Neu starten", "Ein / Aus"};
+    static const char* retriggerInfo[3] = {
+        "Der Sound startet bei jedem Druck erneut und l\u00e4uft \u00fcber den vorherigen.",
+        "Der laufende Sound wird gestoppt und startet von vorn.",
+        "Erster Druck startet den Sound, ein weiterer Druck w\u00e4hrend er l\u00e4uft stoppt ihn."
+    };
+    int mode = std::clamp(gerneral::retriggerMode, 0, 2);
+    int nextMode = UISegment({70, 284, 700, 34}, retriggerLabels, 3, mode);
+    if(nextMode != mode){
+        gerneral::retriggerMode = nextMode;
+        Audio::SetRetriggerMode(nextMode);
+        LoadJson::SaveGeneral();
+        mode = nextMode;
+    }
+    UILabel(retriggerInfo[mode], 70, 324, 14, LIGHTGRAY);
+
+    static TextBox stopBox({260, 352, 200, 35}, "set key", true);
+    static bool stopBoxReady = false;
+    if(!stopBoxReady){
+        if(!gerneral::stopAllKey.empty()) stopBox.SetText(gerneral::stopAllKey);
+        stopBoxReady = true;
+    }
+    UILabel("Alle Sounds stoppen:", 70, 362);
+    if(stopBox.IsClicked()) gerneral::settingsKeyActive = true;
+    else if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) gerneral::settingsKeyActive = false;
+    std::string before = stopBox.GetText();
+    stopBox.Update(gerneral::settingsKeyActive);
+    if(stopBox.GetText() != before){
+        gerneral::stopAllKey = stopBox.IsEmpty() ? "" : stopBox.GetText();
+        LoadJson::SaveGeneral();
+        SyncHotkeys();
+    }
+    if(gerneral::settingsKeyActive && (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_ESCAPE))) gerneral::settingsKeyActive = false;
+    stopBox.Draw();
+    if(UIButton({470, 352, 150, 35}, "Jetzt stoppen")) Audio::StopAll();
+
+    UILabel("Stream Deck: Aktion \"Hotkey\" auf einen Knopf legen und denselben Hotkey (z.B. F13) senden.", 70, 408, 14, LIGHTGRAY);
 }

@@ -7,6 +7,8 @@
         "monitorMode": 2,
         "inputDevice": "",
         "outputDevice": "",
-        "virtualDevice": ""
+        "virtualDevice": "",
+        "retriggerMode": 0,
+        "stopAllKey": ""
     }
 }

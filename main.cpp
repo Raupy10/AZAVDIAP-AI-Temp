@@ -19,6 +19,7 @@ int main()
 
     Audio::Init();
     Audio::SetMonitorMode(gerneral::monitorMode);
+    Audio::SetRetriggerMode(gerneral::retriggerMode);
     Audio::Start(gerneral::inputDevice, gerneral::outputDevice, gerneral::virtualDevice);
 
     Hotkeys::SetEnabled(gerneral::hotkeysEnabled);
@@ -40,6 +41,7 @@ int main()
         if (Platform::WindowHidden())
         {
             SoundboardEntry::activeKeyId = -1;
+            gerneral::settingsKeyActive = false;
             Hotkeys::SetSuspended(false);
             Audio::SetInputTest(false);
             PollInputEvents();
@@ -51,7 +53,7 @@ int main()
         if (gerneral::currentTab == gerneral::Tab::Soundboard) UpdateSoundboard();
         else {
             SoundboardEntry::activeKeyId = -1;
-            Hotkeys::SetSuspended(false);
+            Hotkeys::SetSuspended(gerneral::settingsKeyActive);
         }
 
         BeginDrawing();
