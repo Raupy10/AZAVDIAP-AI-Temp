@@ -7,6 +7,8 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <filesystem>
+#include <fstream>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -107,6 +109,21 @@ std::string sinkModule;
 std::string virtMic;
 std::string defaultInName;
 
+ma_log logger;
+bool logOk = false;
+std::mutex logMutex;
+std::string logPath;
+
+void LogCb(void*, ma_uint32 level, const char* msg){
+    if(level > MA_LOG_LEVEL_WARNING) return;
+    std::string line = std::string(level == MA_LOG_LEVEL_ERROR ? "[Fehler] " : "[Warnung] ") + msg;
+    while(!line.empty() && (line.back() == '\n' || line.back() == '\r')) line.pop_back();
+    std::lock_guard<std::mutex> lk(logMutex);
+    if(logPath.empty()) return;
+    std::ofstream f(std::filesystem::u8path(logPath), std::ios::app);
+    f << line << "\n";
+}
+
 std::mutex vm;
 std::vector<Voice> voices;
 
@@ -160,6 +177,13 @@ const ma_device_id* Find(const std::vector<std::string>& names, const std::vecto
     for(size_t i = 1; i < names.size(); i++)
         if(names[i] == name) return &ids[i - 1];
     return nullptr;
+}
+
+bool IsVirtualName(const std::string& name){
+    std::string n = Lower(name);
+    for(const char* k : {"cable", "voicemeeter", "azavdiap", "monitor of", "virtual"})
+        if(n.find(k) != std::string::npos) return true;
+    return false;
 }
 
 int AutoVirtual(){
@@ -309,7 +333,13 @@ bool Init(){
     std::string id = Platform::RunCommand("pactl load-module module-null-sink sink_name=AZAVDIAP sink_properties=device.description=AZAVDIAP 2>/dev/null");
     if(!id.empty() && id.find_first_not_of("0123456789") == std::string::npos) sinkModule = id;
 #endif
-    ctxOk = ma_context_init(nullptr, 0, nullptr, &ctx) == MA_SUCCESS;
+    logOk = ma_log_init(nullptr, &logger) == MA_SUCCESS;
+    ma_context_config cc = ma_context_config_init();
+    if(logOk){
+        ma_log_register_callback(&logger, ma_log_callback_init(LogCb, nullptr));
+        cc.pLog = &logger;
+    }
+    ctxOk = ma_context_init(nullptr, 0, &cc, &ctx) == MA_SUCCESS;
     ring.Reset();
     Enumerate();
     if(!ctxOk) status = "Audio-System konnte nicht gestartet werden";
@@ -320,6 +350,7 @@ void Shutdown(){
     StopDevices();
     while(pending > 0) std::this_thread::sleep_for(std::chrono::milliseconds(10));
     if(ctxOk){ ma_context_uninit(&ctx); ctxOk = false; }
+    if(logOk){ ma_log_uninit(&logger); logOk = false; }
 #ifndef _WIN32
     if(!sinkModule.empty()) Platform::RunCommand("pactl unload-module " + sinkModule + " 2>/dev/null");
 #endif
@@ -332,9 +363,16 @@ const std::vector<std::string>& OutputNames(){ return outNames; }
 const std::vector<std::string>& VirtualNames(){ return virtNames; }
 const std::string& Status(){ return status; }
 bool HasVirtual(){ return hasVirtual; }
+std::string Backend(){ return ctxOk ? ma_get_backend_name(ctx.backend) : "keins"; }
+
+void SetLogFile(const std::string& path){
+    std::lock_guard<std::mutex> lk(logMutex);
+    logPath = path;
+    std::ofstream f(std::filesystem::u8path(path), std::ios::trunc);
+}
 const std::string& VirtualMic(){ return virtMic; }
 
-ma_result OpenPrimary(const ma_device_id* inId, const ma_device_id* playId, bool& micOk){
+ma_result OpenPrimary(const ma_device_id* inId, const ma_device_id* playId, bool& micOk, ma_performance_profile profile){
     ma_device_config c = ma_device_config_init(ma_device_type_duplex);
     c.sampleRate = kRate;
     c.capture.pDeviceID = inId;
@@ -344,6 +382,7 @@ ma_result OpenPrimary(const ma_device_id* inId, const ma_device_id* playId, bool
     c.playback.format = ma_format_f32;
     c.playback.channels = 2;
     c.dataCallback = PrimaryCb;
+    c.performanceProfile = profile;
 
     micOk = true;
     ma_result r = ma_device_init(&ctx, &c, &primary);
@@ -364,11 +403,12 @@ ma_result OpenPrimary(const ma_device_id* inId, const ma_device_id* playId, bool
 }
 
 ma_result OpenWithRetry(const ma_device_id* inId, const ma_device_id* playId, bool& micOk){
-    ma_result r = OpenPrimary(inId, playId, micOk);
+    ma_result r = OpenPrimary(inId, playId, micOk, ma_performance_profile_low_latency);
     for(int attempt = 0; attempt < 3 && r == MA_BUSY; attempt++){
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
-        r = OpenPrimary(inId, playId, micOk);
+        r = OpenPrimary(inId, playId, micOk, ma_performance_profile_low_latency);
     }
+    if(r != MA_SUCCESS) r = OpenPrimary(inId, playId, micOk, ma_performance_profile_conservative);
     return r;
 }
 
@@ -393,11 +433,23 @@ bool Start(const std::string& in, const std::string& out, const std::string& vir
     virtMic = hasVirtual ? MicNameFor(virtName) : "";
     ring.Reset();
 
+    std::string inNote;
+    std::string usedIn = in.empty() ? defaultInName : in;
+    if(hasVirtual && in.empty() && IsVirtualName(defaultInName)){
+        for(size_t i = 1; i < inNames.size(); i++){
+            if(IsVirtualName(inNames[i])) continue;
+            inId = &inIds[i - 1];
+            usedIn = inNames[i];
+            inNote = "Standard-Eingabe war das virtuelle Mikrofon, nutze stattdessen '" + usedIn + "'";
+            break;
+        }
+    }
+
     std::string note;
     bool micOk = true;
     ma_result r = OpenWithRetry(inId, hasVirtual ? virtId : outId, micOk);
     if(r != MA_SUCCESS && hasVirtual){
-        note = "Fehler: Virtuelles Mikrofon '" + virtName + "' konnte nicht geöffnet werden (" + ma_result_description(r) + ")";
+        note = "Fehler: Virtuelles Mikrofon '" + virtName + "' konnte nicht geöffnet werden (" + ma_result_description(r) + ") [" + Backend() + "]";
         hasVirtual = false;
         virtMic.clear();
         r = OpenWithRetry(inId, outId, micOk);
@@ -405,7 +457,7 @@ bool Start(const std::string& in, const std::string& out, const std::string& vir
     if(r != MA_SUCCESS){
         hasVirtual = false;
         virtMic.clear();
-        status = std::string("Fehler: Ausgabegerät konnte nicht geöffnet werden (") + ma_result_description(r) + ")";
+        status = std::string("Fehler: Ausgabegerät konnte nicht geöffnet werden (") + ma_result_description(r) + ") [" + Backend() + "]";
         return false;
     }
     primaryOk = true;
@@ -428,7 +480,7 @@ bool Start(const std::string& in, const std::string& out, const std::string& vir
     else status = "Kein virtuelles Mikrofon gefunden - nur lokale Ausgabe";
     if(!micOk) status += " | Mikrofon nicht verfügbar";
     else if(hasVirtual && !secondaryOk) status += " | Abhörgerät nicht verfügbar";
-    std::string usedIn = in.empty() ? defaultInName : in;
+    if(!inNote.empty()) status += " | " + inNote;
     if(hasVirtual && micOk && usedIn == virtMic) status += " | Warnung: Eingabe ist das virtuelle Mikrofon selbst, bitte echtes Mikrofon wählen";
     return true;
 }

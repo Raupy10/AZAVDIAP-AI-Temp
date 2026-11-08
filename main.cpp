@@ -17,6 +17,7 @@ int main()
 
     LoadJson::Load();
 
+    Audio::SetLogFile(gerneral::configDir() + "/audio.log");
     Audio::Init();
     Audio::SetMonitorMode(gerneral::monitorMode);
     Audio::SetRetriggerMode(gerneral::retriggerMode);

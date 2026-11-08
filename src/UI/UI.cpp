@@ -133,9 +133,10 @@ void MicUI(float T_StartX,float T_StartY){
         }
     }
     else if(status.rfind("Fehler", 0) == 0){
-        UILabel("Audioger\u00e4t konnte nicht ge\u00f6ffnet werden:", 70, 383, 16, ORANGE);
-        if(UIButton({400, 378, 160, 26}, "Erneut versuchen")) ApplyAudio();
-        if(UIButton({566, 378, 204, 26}, "VB-CABLE herunterladen")) Platform::OpenUrl("https://vb-audio.com/Cable/");
+        UILabel("Audioger\u00e4t nicht ge\u00f6ffnet:", 70, 383, 16, ORANGE);
+        if(UIButton({300, 378, 150, 26}, "Erneut versuchen")) ApplyAudio();
+        if(UIButton({456, 378, 150, 26}, "Protokoll \u00f6ffnen")) Platform::OpenUrl(gerneral::configDir() + "/audio.log");
+        if(UIButton({612, 378, 158, 26}, "VB-CABLE laden")) Platform::OpenUrl("https://vb-audio.com/Cable/");
         float y = 410;
         for(auto& line : UIWrap(status, 100, 2)){
             UILabel(line, 70, y, 14, LIGHTGRAY);
