@@ -363,6 +363,15 @@ ma_result OpenPrimary(const ma_device_id* inId, const ma_device_id* playId, bool
     return r;
 }
 
+ma_result OpenWithRetry(const ma_device_id* inId, const ma_device_id* playId, bool& micOk){
+    ma_result r = OpenPrimary(inId, playId, micOk);
+    for(int attempt = 0; attempt < 3 && r == MA_BUSY; attempt++){
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
+        r = OpenPrimary(inId, playId, micOk);
+    }
+    return r;
+}
+
 bool Start(const std::string& in, const std::string& out, const std::string& virt){
     StopDevices();
     if(!ctxOk) return false;
@@ -386,12 +395,12 @@ bool Start(const std::string& in, const std::string& out, const std::string& vir
 
     std::string note;
     bool micOk = true;
-    ma_result r = OpenPrimary(inId, hasVirtual ? virtId : outId, micOk);
+    ma_result r = OpenWithRetry(inId, hasVirtual ? virtId : outId, micOk);
     if(r != MA_SUCCESS && hasVirtual){
         note = "Fehler: Virtuelles Mikrofon '" + virtName + "' konnte nicht geöffnet werden (" + ma_result_description(r) + ")";
         hasVirtual = false;
         virtMic.clear();
-        r = OpenPrimary(inId, outId, micOk);
+        r = OpenWithRetry(inId, outId, micOk);
     }
     if(r != MA_SUCCESS){
         hasVirtual = false;

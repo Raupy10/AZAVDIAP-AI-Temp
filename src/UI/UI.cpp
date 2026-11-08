@@ -122,17 +122,31 @@ void MicUI(float T_StartX,float T_StartY){
         LoadJson::SaveGeneral();
     }
 
+    const std::string& status = Audio::Status();
     if(Audio::HasVirtual()){
-        UILabel(UIFit("Im Spiel als Mikrofon w\u00e4hlen: " + Audio::VirtualMic(), 90), 70, 385, 16, GREEN);
-        UILabel(UIFit(Audio::Status(), 105), 70, 410, 14, Audio::Status().find("Warnung") != std::string::npos ? ORANGE : LIGHTGRAY);
+        UILabel(UIFit("Im Spiel als Mikrofon w\u00e4hlen: " + Audio::VirtualMic(), 90), 70, 383, 16, GREEN);
+        Color c = status.find("Warnung") != std::string::npos ? ORANGE : LIGHTGRAY;
+        float y = 408;
+        for(auto& line : UIWrap(status, 100, 2)){
+            UILabel(line, 70, y, 14, c);
+            y += 17;
+        }
+    }
+    else if(status.rfind("Fehler", 0) == 0){
+        UILabel("Audioger\u00e4t konnte nicht ge\u00f6ffnet werden:", 70, 383, 16, ORANGE);
+        if(UIButton({400, 378, 160, 26}, "Erneut versuchen")) ApplyAudio();
+        if(UIButton({566, 378, 204, 26}, "VB-CABLE herunterladen")) Platform::OpenUrl("https://vb-audio.com/Cable/");
+        float y = 410;
+        for(auto& line : UIWrap(status, 100, 2)){
+            UILabel(line, 70, y, 14, LIGHTGRAY);
+            y += 17;
+        }
     }
     else{
-        bool failed = Audio::Status().rfind("Fehler", 0) == 0;
-        UILabel(failed ? "Audioger\u00e4t konnte nicht ge\u00f6ffnet werden:" : "Kein virtuelles Mikrofon gefunden - das Spiel h\u00f6rt dich so nicht.", 70, 380, 16, ORANGE);
-        if(failed) UILabel(UIFit(Audio::Status(), 105), 70, 400, 14, LIGHTGRAY);
-        if(UIButton({70, 418, 160, 28}, "Erneut versuchen")) ApplyAudio();
-        if(UIButton({240, 418, 210, 28}, "VB-CABLE herunterladen")) Platform::OpenUrl("https://vb-audio.com/Cable/");
-        if(!failed) UILabel("Nach der Installation Windows neu starten.", 460, 424, 14, LIGHTGRAY);
+        UILabel("Kein virtuelles Mikrofon gefunden - das Spiel h\u00f6rt dich so nicht.", 70, 383, 16, ORANGE);
+        if(UIButton({70, 412, 160, 28}, "Erneut versuchen")) ApplyAudio();
+        if(UIButton({240, 412, 210, 28}, "VB-CABLE herunterladen")) Platform::OpenUrl("https://vb-audio.com/Cable/");
+        UILabel("Nach der Installation Windows neu starten.", 460, 418, 14, LIGHTGRAY);
     }
 }
 

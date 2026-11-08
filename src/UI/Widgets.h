@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "Theme.h"
 #include <string>
+#include <vector>
 
 inline const Color UI_Panel  = {60, 60, 60, 255};
 inline const Color UI_Hover  = {80, 80, 80, 255};
@@ -22,6 +23,30 @@ inline void UILabel(const std::string& t, float x, float y, int size = 16, Color
 inline std::string UIFit(const std::string& s, int maxChars){
     if((int)s.size() <= maxChars) return s;
     return s.substr(0, maxChars - 3) + "...";
+}
+
+inline std::vector<std::string> UIWrap(const std::string& s, size_t maxChars, size_t maxLines){
+    std::vector<std::string> lines;
+    std::string cur;
+    size_t i = 0;
+    while(i < s.size()){
+        size_t j = s.find(' ', i);
+        std::string word = s.substr(i, j == std::string::npos ? std::string::npos : j - i);
+        i = j == std::string::npos ? s.size() : j + 1;
+        if(!cur.empty() && cur.size() + 1 + word.size() > maxChars){
+            lines.push_back(cur);
+            cur.clear();
+        }
+        if(!cur.empty()) cur += ' ';
+        cur += word;
+        while(cur.size() > maxChars){
+            lines.push_back(cur.substr(0, maxChars));
+            cur = cur.substr(maxChars);
+        }
+    }
+    if(!cur.empty()) lines.push_back(cur);
+    if(lines.size() > maxLines) lines.resize(maxLines);
+    return lines;
 }
 
 inline bool UIButton(Rectangle r, const std::string& text, bool active = false){
