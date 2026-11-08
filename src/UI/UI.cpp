@@ -124,13 +124,15 @@ void MicUI(float T_StartX,float T_StartY){
 
     if(Audio::HasVirtual()){
         UILabel(UIFit("Im Spiel als Mikrofon w\u00e4hlen: " + Audio::VirtualMic(), 90), 70, 385, 16, GREEN);
-        UILabel(UIFit(Audio::Status(), 100), 70, 410, 14, LIGHTGRAY);
+        UILabel(UIFit(Audio::Status(), 105), 70, 410, 14, Audio::Status().find("Warnung") != std::string::npos ? ORANGE : LIGHTGRAY);
     }
     else{
         bool failed = Audio::Status().rfind("Fehler", 0) == 0;
-        UILabel(failed ? Audio::Status() : "Kein virtuelles Mikrofon gefunden - das Spiel h\u00f6rt dich so nicht.", 70, 385, 16, ORANGE);
-        if(UIButton({70, 408, 210, 30}, "VB-CABLE herunterladen")) Platform::OpenUrl("https://vb-audio.com/Cable/");
-        UILabel("Nach der Installation Windows neu starten.", 292, 416, 14, LIGHTGRAY);
+        UILabel(failed ? "Audioger\u00e4t konnte nicht ge\u00f6ffnet werden:" : "Kein virtuelles Mikrofon gefunden - das Spiel h\u00f6rt dich so nicht.", 70, 380, 16, ORANGE);
+        if(failed) UILabel(UIFit(Audio::Status(), 105), 70, 400, 14, LIGHTGRAY);
+        if(UIButton({70, 418, 160, 28}, "Erneut versuchen")) ApplyAudio();
+        if(UIButton({240, 418, 210, 28}, "VB-CABLE herunterladen")) Platform::OpenUrl("https://vb-audio.com/Cable/");
+        if(!failed) UILabel("Nach der Installation Windows neu starten.", 460, 424, 14, LIGHTGRAY);
     }
 }
 
