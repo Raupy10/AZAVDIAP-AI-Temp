@@ -124,6 +124,13 @@ void LogCb(void*, ma_uint32 level, const char* msg){
     f << line << "\n";
 }
 
+void Log(const std::string& msg){
+    std::lock_guard<std::mutex> lk(logMutex);
+    if(logPath.empty()) return;
+    std::ofstream f(std::filesystem::u8path(logPath), std::ios::app);
+    f << "[Info] " << msg << "\n";
+}
+
 std::mutex vm;
 std::vector<Voice> voices;
 
@@ -402,6 +409,32 @@ ma_result OpenPrimary(const ma_device_id* inId, const ma_device_id* playId, bool
     return r;
 }
 
+void ProbeCb(ma_device*, void*, const void*, ma_uint32){}
+
+ma_result Probe(ma_device_type type, const ma_device_id* id){
+    ma_device_config c = ma_device_config_init(type);
+    c.sampleRate = kRate;
+    c.dataCallback = ProbeCb;
+    if(type == ma_device_type_capture){
+        c.capture.pDeviceID = id;
+        c.capture.format = ma_format_f32;
+        c.capture.channels = 1;
+    }
+    else{
+        c.playback.pDeviceID = id;
+        c.playback.format = ma_format_f32;
+        c.playback.channels = 2;
+    }
+    ma_device d;
+    ma_result r = ma_device_init(&ctx, &c, &d);
+    if(r == MA_SUCCESS) ma_device_uninit(&d);
+    return r;
+}
+
+std::string Describe(ma_result r){
+    return r == MA_SUCCESS ? "frei" : ma_result_description(r);
+}
+
 ma_result OpenWithRetry(const ma_device_id* inId, const ma_device_id* playId, bool& micOk){
     ma_result r = OpenPrimary(inId, playId, micOk, ma_performance_profile_low_latency);
     for(int attempt = 0; attempt < 3 && r == MA_BUSY; attempt++){
@@ -447,9 +480,17 @@ bool Start(const std::string& in, const std::string& out, const std::string& vir
 
     std::string note;
     bool micOk = true;
+    Log("Start: Backend=" + Backend() + " Eingang='" + usedIn + "' Ausgang='" + (out.empty() ? std::string("Standard") : out) + "' Virtuell='" + virtName + "'");
     ma_result r = OpenWithRetry(inId, hasVirtual ? virtId : outId, micOk);
+    std::string probe;
+    if(r != MA_SUCCESS){
+        ma_result pr = Probe(ma_device_type_playback, hasVirtual ? virtId : outId);
+        ma_result cr = Probe(ma_device_type_capture, inId);
+        probe = " | Test: Ausgang " + Describe(pr) + ", Mikrofon " + Describe(cr);
+        Log("Öffnen fehlgeschlagen (" + std::string(ma_result_description(r)) + ")" + probe);
+    }
     if(r != MA_SUCCESS && hasVirtual){
-        note = "Fehler: Virtuelles Mikrofon '" + virtName + "' konnte nicht geöffnet werden (" + ma_result_description(r) + ") [" + Backend() + "]";
+        note = "Fehler: '" + virtName + "' nicht geöffnet (" + ma_result_description(r) + ") [" + Backend() + "]" + probe;
         hasVirtual = false;
         virtMic.clear();
         r = OpenWithRetry(inId, outId, micOk);
@@ -457,7 +498,7 @@ bool Start(const std::string& in, const std::string& out, const std::string& vir
     if(r != MA_SUCCESS){
         hasVirtual = false;
         virtMic.clear();
-        status = std::string("Fehler: Ausgabegerät konnte nicht geöffnet werden (") + ma_result_description(r) + ") [" + Backend() + "]";
+        status = std::string("Fehler: Ausgabegerät nicht geöffnet (") + ma_result_description(r) + ") [" + Backend() + "]" + probe;
         return false;
     }
     primaryOk = true;
